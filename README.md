@@ -20,13 +20,13 @@ Repository Contents
 Documentation 
 -------------------
 
-* **[BMS56M206A Arduino Library Description]( https://www.bestmodulescorp.com/bms56m206a.html#tab-product2 )** - Arduino Library Description.
+* **[BMS56M206A Arduino Library V1.0.1 Description v100]( https://www.bestmodulescorp.com/bms56m605.html#tab-product2 )** - Arduino Library Description.
 
 Version History  
 -------------------
 
-* **V1.0.1**  
-&emsp;&emsp;- Initial public release.
+* **V1.0.1** - Initial public release.
+* **V1.0.2** - Modify the interrupt usage method.
 
 License Information
 -------------------

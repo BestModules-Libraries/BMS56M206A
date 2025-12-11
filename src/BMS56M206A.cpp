@@ -2,7 +2,7 @@
 File:             BMS56M206A.cpp
 Author:           BEST MODULES CORP.
 Description:      IIC communication with the sensor and obtain the corresponding value  
-Version:          V1.0.1   -- 2025-04-08
+Version：         V1.0.2   --2025-12-01
 ******************************************************************/
 #include "BMS56M206A.h"
 
@@ -156,7 +156,8 @@ Others:   When this bit is equal to 0, the logic level for the INT pin is active
 **********************************************************/
 void BMS56M206A::setInterruptPinPolarity(uint8_t active_level)
 {
-       writeRegBit(REG_INT_PIN_CFG, 7, active_level & 0x01); 
+       //writeRegBit(REG_INT_PIN_CFG, 7, active_level & 0x01); 
+        writeReg(REG_INT_PIN_CFG,0x60|(active_level<<7)); //INT MODE
 }
 
 /**********************************************************
@@ -194,6 +195,17 @@ uint8_t BMS56M206A::getINT()
       uint8_t statusValue = 0;
       statusValue = digitalRead(_intpin);
       return statusValue;
+}
+/**********************************************************
+Description: clear  INT status reg
+Parameters:  none
+Return:      
+Others:      
+**********************************************************/
+void BMS56M206A::clearINTFlag()
+{
+      uint8_t statusValue;
+      statusValue = readReg(REG_INT_STATUS);
 }
 
 /**********************************************************
@@ -320,84 +332,24 @@ uint8_t BMS56M206A::getGyroRange()
       rangeValue = (dataBuff[0]>>3)&0x03; //get bit4 and bit3   
       return rangeValue;
 }
+
 /**********************************************************
-Description: get Free fall Threshold
-Parameters:  none
-Return:      Threshold data(1 byte) ,unit:mg
-Others:      when FREE_FALL_Mode is set
+Description: Get Motion Threshold Value.
+Parameters:  axis:X/Y/Z axis 
+                  0x20 (ACCEL_WOM_X_THR):X
+                  0x21 (ACCEL_WOM_Y_THR) :Y
+                  0x22 (ACCEL_WOM_Z_THR) :Z
+Return:      Threshold value
+Others:      none
 **********************************************************/
-uint8_t BMS56M206A::getFreefallThreshold()
+uint8_t BMS56M206A::getMotionThreshold(uint8_t axis)
 {
-      uint8_t thresholdValue = 0;
-      readReg(REG_FF_THR,dataBuff,1); 
-      thresholdValue = dataBuff[0];
-      return thresholdValue;
+      uint8_t Value = 0;
+      readReg(axis,dataBuff,1);
+      Value = dataBuff[0];   
+      return Value;
 }
-/**********************************************************
-Description: get Motion Threshold
-Parameters:  none
-Return:      Threshold data(1 byte)  ,unit:mg   
-Others:      when Motion_Mode is set
-**********************************************************/
-uint8_t BMS56M206A::getMotionThreshold()
-{
-      uint8_t thresholdValue = 0;
-      readReg(REG_MOT_THR,dataBuff,1);   
-      thresholdValue = dataBuff[0];  
-      return thresholdValue;
-}
-/**********************************************************
-Description: get Free fall Duration
-Parameters:  none
-Return:      Duration data(1 byte)   ,unit:ms
-Others:      when FREE_FALL_Mode is set
-**********************************************************/
-uint8_t BMS56M206A::getFreefallDuration()
-{
-      uint8_t durationValue = 0;
-      readReg(REG_FF_DUR,dataBuff,1); 
-      durationValue = dataBuff[0]; 
-      return durationValue;
-}
-/**********************************************************
-Description: get Motion Duration
-Parameters:  none
-Return:      Duration data(1 byte),unit:ms    
-Others:      when Motion_Mode is set
-**********************************************************/
-uint8_t BMS56M206A::getMotionDuration()
-{
-      uint8_t durationValue = 0;
-      readReg(REG_MOT_DUR,dataBuff,1);
-      durationValue = dataBuff[0]; 
-      return durationValue;
-}
-/**********************************************************
-Description: get Zero Motion Threshold
-Parameters:  none
-Return:      Threshold data(1 byte)   ,unit:mg   
-Others:      when Zero_Motion_Mode is set
-**********************************************************/
-uint8_t BMS56M206A::getZeroMotionThreshold()
-{
-      uint8_t thresholdValue = 0;
-      readReg(REG_ZRMOT_THR,dataBuff,1);
-      thresholdValue = dataBuff[0]; 
-      return thresholdValue;
-}
-/**********************************************************
-Description: get Zero Motion Duration
-Parameters:  none
-Return:      Duration data(1 byte)  ,unit:ms 
-Others:      when Zero_Motion_Mode is set
-**********************************************************/
-uint8_t BMS56M206A::getZeroMotionDuration()
-{
-      uint8_t durationValue = 0;
-      readReg(REG_ZRMOT_DUR,dataBuff,1);
-      durationValue = dataBuff[0]; 
-      return durationValue;
-}
+
 /**********************************************************
 Description: get Clock Source
 Parameters:  none
@@ -501,69 +453,46 @@ void BMS56M206A::setGyroRange(uint8_t range)
       writeRegBit(REG_GYRO_CONFIG, 3, range & 0x01); 
       writeRegBit(REG_GYRO_CONFIG, 4, range & 0x02);      
 }
+
 /**********************************************************
-Description: set Free fall Threshold
-Parameters:  threshold:Variables for storing Threshold data,unit:mg
-Return:      void   
-Others:      when FREE_FALL_Mode is set
-	           1 LSB = 1mg
+Description: set Motion Threshold
+Parameters:   axis:X/Y/Z axis 
+                  0x20 (ACCEL_WOM_X_THR):X
+                  0x21 (ACCEL_WOM_Y_THR) :Y
+                  0x22 (ACCEL_WOM_Z_THR) :Z
+              Threshold:Threshold data(1 byte) 
+                  ±2g Range，0.01g/LSB
+                  ±4g Range，0.02g/LSB
+                  ±8g Range，0.04g/LSB
+                  ±16g Range，0.08g/LSB
+Return:      void
+Others:      
 **********************************************************/
-void  BMS56M206A::setFreefallThreshold(uint8_t threshold)
+void BMS56M206A::setMotionThreshold(uint8_t axis,uint8_t threshold)
 {
-      writeReg(REG_FF_THR, threshold);
-}
-/**********************************************************
-Description: set Free fall Duration
-Parameters:  duration:Variables for storing Duration data,unit:ms
-Return:      void    
-Others:      when FREE_FALL_Mode is set,unit:ms
-**********************************************************/
-void  BMS56M206A::setFreefallDuration(uint8_t duration)
-{
-      writeReg(REG_FF_DUR, duration);
+      if(axis<=ACCEL_WOM_Z_THR &&axis>=ACCEL_WOM_X_THR)
+      {
+            writeReg(axis, threshold);
+      }
 }
 /**********************************************************
 Description: set Motion Threshold
-Parameters:  threshold:Variables for storing Threshold data ,unit:mg
-Return:      void   
+Parameters:   0 – Set WoM interrupt on the OR of all enabled accelerometer thresholds 
+              1 – Set WoM interrupt on the AND of all enabled accelerometer threshold 
+Return:      void
+Others:      
+**********************************************************/
+void BMS56M206A::setMotionOutConfig(uint8_t OR_AND)
+{
+      writeReg(REG_MOT_DETECT_CTRL, 0xC2|OR_AND); 
+
+}
+/**********************************************************
+Description: get Motion Threshold
+Parameters:   X/Y/Z axis ,Threshold data(1 byte) 
+Return:      void
 Others:      when Motion_Mode is set
-             1 LSB = 1mg
 **********************************************************/
-void  BMS56M206A::setMotionThreshold(uint8_t threshold)
-{
-      writeReg(REG_MOT_THR, threshold);
-}
-/**********************************************************
-Description: set Motion Duration
-Parameters:  duration:Variables for storing Duration data ,unit:ms
-Return:      void    
-Others:      when Motion_Mode is set,unit:ms
-**********************************************************/
-void  BMS56M206A::setMotionDuration(uint8_t duration)
-{
-      writeReg(REG_MOT_DUR, duration);
-}
-/**********************************************************
-Description: set Zero Motion Threshold
-Parameters:  threshold:Variables for storing Threshold data,unit:mg
-Return:      void   
-Others:      when Zero_Motion_Mode is set
-             1 LSB = 1mg
-**********************************************************/
-void  BMS56M206A::setZeroMotionThreshold(uint8_t threshold)
-{
-      writeReg(REG_ZRMOT_THR, threshold);
-}
-/**********************************************************
-Description: set Zero Motion Duration
-Parameters:  duration:Variables for storing Duration data ,unit:ms
-Return:      void  
-Others:      when Zero_Motion_Mode is set,unit:ms
-**********************************************************/
-void  BMS56M206A::setZeroMotionDuration(uint8_t duration)
-{
-      writeReg(REG_ZRMOT_DUR, duration);
-}
 /**********************************************************
 Description: set Clock Source
 Parameters:  clock:Optional:

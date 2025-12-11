@@ -2,7 +2,7 @@
 File:             BMS56M206A.h
 Author:           BEST MODULES CORP.
 Description:      Define classes and required variables
-Version:          V1.0.1   -- 2025-04-08
+Version：         V1.0.2   --2025-12-01
 ******************************************************************/
 
 #ifndef _BMS56M206A_H_
@@ -34,6 +34,8 @@ class BMS56M206A
        void setInterruptPinPolarity(uint8_t active_level);
        void setINT(uint8_t mode,uint8_t isEnable = false);
        uint8_t getINT();
+       void clearINTFlag();
+
        // other
        void writeReg(uint8_t addr, uint8_t data);
        uint8_t readReg(uint8_t addr);
@@ -42,15 +44,15 @@ class BMS56M206A
        void enableCycle(bool isEnable = false);
        void reset();
 
+
+
+
        /*** Parameter configuration and reading  ***/
        uint8_t getAccelerometerRange();
        uint8_t getGyroRange();
-       uint8_t getFreefallThreshold();
-       uint8_t getFreefallDuration();
-       uint8_t getMotionThreshold();
-       uint8_t getMotionDuration();
-       uint8_t getZeroMotionThreshold();
-       uint8_t getZeroMotionDuration();
+
+        uint8_t getMotionThreshold(uint8_t axis); 
+
        uint8_t getClock();
        uint8_t getFilterBandwidth();
        uint8_t getSampleRateDivisor();
@@ -58,12 +60,10 @@ class BMS56M206A
        
        void setAccelerometerRange(uint8_t range);
        void setGyroRange(uint8_t range);
-       void setFreefallThreshold(uint8_t threshold);
-       void setFreefallDuration(uint8_t duration);
-       void setMotionThreshold(uint8_t threshold);
-       void setMotionDuration(uint8_t duration);
-       void setZeroMotionThreshold(uint8_t threshold);
-       void setZeroMotionDuration(uint8_t duration);
+
+       void setMotionThreshold(uint8_t axis,uint8_t threshold); 
+       void setMotionOutConfig(uint8_t OR_AND);
+
        void setClock(uint8_t clock);
        void setFilterBandwidth(uint8_t band);
        void setSampleRateDivisor(uint8_t divisor);
@@ -141,9 +141,14 @@ class BMS56M206A
 #define F_10HZ                    3
 
 /*INT mode*/
-#define FREE_FALL_MODE            7
-#define MOTION_MODE               6
-#define ZERO_MOTION_MODE          5
+#define X_MOTION_MODE            7
+#define Y_MOTION_MODE               6
+#define Z_MOTION_MODE          5
+
+/*INT OUT Config*/
+#define INT_OUT_AND            1
+#define INT_OUT_OR              0
+
 
 //BMS56M605 Register
 #define REG_XG_OFFS_TC           0x00 
@@ -171,9 +176,9 @@ class BMS56M206A
 #define REG_FF_THR               0x1D
 #define REG_FF_DUR               0x1E
 #define REG_MOT_THR              0x1F
-#define REG_MOT_DUR              0x20
-#define REG_ZRMOT_THR            0x21
-#define REG_ZRMOT_DUR            0x22
+#define ACCEL_WOM_X_THR            0x20
+#define ACCEL_WOM_Y_THR            0x21
+#define ACCEL_WOM_Z_THR            0x22
 #define REG_FIFO_EN              0x23
 #define REG_I2C_MST_CTRL         0x24
 #define REG_I2C_SLV0_ADDR        0x25
